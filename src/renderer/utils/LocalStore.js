@@ -12,6 +12,8 @@ export const defaults = generateSettings()
  */
 function generateSettings() {
   return {
+    tasks: [],
+    activeTaskId: null,
     alwaysOnTop: false,
     breakAlwaysOnTop: false,
     autoStartWorkTimer: true,
