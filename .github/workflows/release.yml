@@ -1,0 +1,101 @@
+name: Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag_name:
+        description: 'Release tag (example: v0.14.0)'
+        required: true
+        type: string
+      release_name:
+        description: 'Release title (optional)'
+        required: false
+        default: ''
+        type: string
+      draft:
+        description: 'Create as draft release'
+        required: false
+        default: true
+        type: boolean
+      prerelease:
+        description: 'Mark as pre-release'
+        required: false
+        default: false
+        type: boolean
+      publish_release:
+        description: 'Publish assets to GitHub Release'
+        required: false
+        default: true
+        type: boolean
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  build-assets:
+    name: Build Assets (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - ubuntu-latest
+          - windows-latest
+          - macos-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 14.x
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci --include=dev
+
+      - name: Build distributables
+        run: npm run build
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-assets-${{ matrix.os }}
+          path: |
+            build/**/*.AppImage
+            build/**/*.deb
+            build/**/*.dmg
+            build/**/*.exe
+            build/**/*.snap
+            build/**/*.tar.gz
+            build/**/*.zip
+          if-no-files-found: warn
+          retention-days: 14
+
+  publish-release:
+    name: Publish GitHub Release
+    needs: build-assets
+    if: ${{ inputs.publish_release }}
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: release-assets
+          merge-multiple: true
+
+      - name: Create/Update release and upload assets
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ inputs.tag_name }}
+          name: ${{ inputs.release_name != '' && inputs.release_name || inputs.tag_name }}
+          draft: ${{ inputs.draft }}
+          prerelease: ${{ inputs.prerelease }}
+          files: release-assets/**/*
