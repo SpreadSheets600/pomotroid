@@ -300,8 +300,18 @@ export default {
       logger.info(`${this.currentRoundDisplay} round paused`)
     },
 
-    resetTimer() {
+    resetTimer(skipInterrupt = false) {
       if (!this.timerWorker) return
+
+      if (
+        !skipInterrupt &&
+        this.currentRound === 'work' &&
+        this.timerStarted &&
+        this.$store.getters.currentSession
+      ) {
+        this.$store.dispatch('interruptSession')
+      }
+
       this.timerWorker.postMessage({ event: 'reset' })
       this.timerActive = !this.timerActive
       this.timerStarted = false
@@ -315,6 +325,16 @@ export default {
 
     startTimer() {
       if (!this.timerWorker) return
+
+      if (this.currentRound === 'work' && !this.timerStarted) {
+        this.$store.dispatch('startSession', {
+          type: this.currentRound,
+          duration: this.minutes,
+          taskName: this.activeTask ? this.activeTask.title : null,
+          taskId: this.activeTask ? this.activeTask.id : null
+        })
+      }
+
       this.timerWorker.postMessage({ event: 'start' })
       this.timerActive = true
       this.timerStarted = true
@@ -335,8 +355,8 @@ export default {
     this.initTimer()
 
     EventBus.$on('timer-init', opts => {
-      // clear previous timers
-      this.resetTimer()
+      // Clear previous timers during round transitions without interruption flow.
+      this.resetTimer(true)
       this.initTimer()
       if (opts.auto) {
         setTimeout(() => {
@@ -344,6 +364,16 @@ export default {
         }, 1500)
       } else {
         this.timerActive = false
+      }
+    })
+
+    EventBus.$on('timer-completed', () => {
+      const currentSession = this.$store.getters.currentSession
+      if (currentSession && currentSession.type === 'work') {
+        this.$store.dispatch('completeSession', {
+          completed: true,
+          interruptReason: null
+        })
       }
     })
 
