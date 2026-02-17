@@ -95,6 +95,33 @@
     </div>
     <div
       class="Drawer-menu-wrapper"
+      title="Tasks"
+      @click="setDrawerComponent('appDrawerTasks')"
+      :class="{ 'is-active': currentDrawer === 'appDrawerTasks' }"
+    >
+      <div class="Drawer-menu-button">
+        <div class="Icon-wrapper">
+          <svg
+            version="1.1"
+            id="tasks-icon"
+            class="Icon"
+            xmlns="http://www.w3.org/2000/svg"
+            x="0px"
+            y="0px"
+            width="18"
+            viewBox="0 0 24 24"
+            xml:space="preserve"
+          >
+            <path
+              fill="var(--color-background-lightest)"
+              d="M19,3H5C3.9,3,3,3.9,3,5v14c0,1.1,0.9,2,2,2h14c1.1,0,2-0.9,2-2V5C21,3.9,20.1,3,19,3z M11,17H8v-2h3V17z M11,13H8v-2h3V13z M11,9H8V7h3V9z M18,17h-5v-2h5V17z M18,13h-5v-2h5V13z M18,9h-5V7h5V9z"
+            />
+          </svg>
+        </div>
+      </div>
+    </div>
+    <div
+      class="Drawer-menu-wrapper"
       title="About"
       @click="setDrawerComponent('appDrawerAbout')"
       :class="{ 'is-active': currentDrawer === 'appDrawerAbout' }"
