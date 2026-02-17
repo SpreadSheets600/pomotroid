@@ -10,6 +10,9 @@
       <p class="Dial-time" v-if="!timerStarted">{{ prettyMinutes }}</p>
       <p class="Dial-time" v-else>{{ prettyTime }}</p>
     </app-timer-dial>
+    <p v-if="currentRound === 'work' && activeTask" class="Focus-task">
+      Focus: {{ activeTask.title }}
+    </p>
 
     <section class="Container Button-wrapper">
       <transition name="fade" mode="out-in">
@@ -175,6 +178,10 @@ export default {
 
     timeWork() {
       return this.$store.getters.timeWork
+    },
+
+    activeTask() {
+      return this.$store.getters.activeTask
     },
 
     // local
@@ -399,6 +406,18 @@ export default {
   display: flex;
   justify-content: center;
   margin: 20px 0 10px 0;
+}
+
+.Focus-task {
+  color: var(--color-foreground-darker);
+  font-size: 13px;
+  letter-spacing: 0.03em;
+  margin: 8px auto -4px auto;
+  max-width: 260px;
+  overflow: hidden;
+  text-align: center;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .Button-icon-wrapper {
